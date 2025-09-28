@@ -1,4 +1,4 @@
-// AulaF108 Plugin siguiendo guía SignalRGB
+// AulaF108 Plugin para SignalRGB
 // Autor: Iván + Sr Dev Support
 
 export function Name() { return "Aula F108"; }
@@ -13,12 +13,8 @@ export function ControllableParameters() {
     return [];
 }
 
-// Validar si el dispositivo conectado corresponde a este plugin
 export function Validate(device) {
-    if (device.vendorId === VendorId() && device.productId === ProductId()) {
-        return true;
-    }
-    return false;
+    return device && device.vendorId === VendorId() && device.productId === ProductId();
 }
 
 export function LedNames() {
@@ -93,7 +89,7 @@ export function LedPositions() {
 
 export function Initialize() {
     if (!Device.OpenRGBDevice()) {
-        console.log("❌ No se pudo abrir Aula F108");
+        console.error("❌ No se pudo abrir Aula F108");
         return false;
     }
     console.log("✅ Aula F108 inicializado");
@@ -101,8 +97,12 @@ export function Initialize() {
 }
 
 export function Render(colors) {
-    let buffer = new Array(520).fill(0);
+    if (!colors || !Array.isArray(colors)) {
+        console.warn("⚠ Render llamado sin colores válidos");
+        return;
+    }
 
+    let buffer = new Array(520).fill(0);
     buffer[0] = 0x00;
     buffer[1] = 0x00;
     buffer[2] = 0x00;
@@ -110,11 +110,10 @@ export function Render(colors) {
 
     for (let i = 0; i < colors.length && i < LedNames().length; i++) {
         let c = colors[i];
-        let offset = 4 + (i * 4);
-        buffer[offset]     = c[0];
-        buffer[offset + 1] = c[1];
-        buffer[offset + 2] = c[2];
-        buffer[offset + 3] = 0x00;
+        buffer[4 + i*4]     = c[0] || 0;
+        buffer[4 + i*4 + 1] = c[1] || 0;
+        buffer[4 + i*4 + 2] = c[2] || 0;
+        buffer[4 + i*4 + 3] = 0x00;
     }
 
     Device.SendRGBReport(buffer);
@@ -122,4 +121,15 @@ export function Render(colors) {
 
 export function Shutdown() {
     Device.Close();
+    console.log("🔴 Aula F108 cerrado");
 }
+
+// Exponer funciones a SignalRGB de forma explícita
+export const hid = {
+    initialize: Initialize,
+    render: Render,
+    shutdown: Shutdown,
+    validate: Validate
+};
+
+
