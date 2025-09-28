@@ -13,8 +13,8 @@ export function ControllableParameters() {
     return [];
 }
 
-export function Validate(device) {
-    return device && device.vendorId === VendorId() && device.productId === ProductId();
+export function Validate(endpoint) {
+    return endpoint.interface === 0 && endpoint.usage === 0x0002 && endpoint.usage_page === 0xffc1;
 }
 
 export function LedNames() {
@@ -88,7 +88,7 @@ export function LedPositions() {
 }
 
 export function Initialize() {
-    if (!Device.OpenRGBDevice()) {
+    if (!device.OpenRGBDevice()) {
         console.error("❌ No se pudo abrir Aula F108");
         return false;
     }
@@ -96,16 +96,15 @@ export function Initialize() {
     return true;
 }
 
-// Variable para controlar warning de Render
 let warnedNoColors = false;
 
 export function Render(colors) {
-    if (!Array.isArray(colors)) {
+    if (!Array.isArray(colors) || colors.length === 0) {
         if (!warnedNoColors) {
             console.warn("⚠ Render llamado sin colores válidos");
             warnedNoColors = true;
         }
-        colors = new Array(LedNames().length).fill([0,0,0]);
+        colors = new Array(LedNames().length).fill([0, 0, 0]);
     }
 
     let buffer = new Array(520).fill(0);
@@ -116,26 +115,19 @@ export function Render(colors) {
 
     for (let i = 0; i < colors.length && i < LedNames().length; i++) {
         let c = colors[i];
-        buffer[4 + i*4]     = c[0] || 0;
-        buffer[4 + i*4 + 1] = c[1] || 0;
-        buffer[4 + i*4 + 2] = c[2] || 0;
-        buffer[4 + i*4 + 3] = 0x00;
+        buffer[4 + i * 4] = c[0] || 0;
+        buffer[4 + i * 4 + 1] = c[1] || 0;
+        buffer[4 + i * 4 + 2] = c[2] || 0;
+        buffer[4 + i * 4 + 3] = 0x00;
     }
 
-    Device.SendRGBReport(buffer);
+    device.SendRGBReport(buffer);
 }
 
 export function Shutdown() {
-    Device.Close();
+    device.Close();
     console.log("🔴 Aula F108 cerrado");
 }
 
-// Exponer funciones a SignalRGB explícitamente
-export const hid = {
-    initialize: Initialize,
-    render: Render,
-    shutdown: Shutdown,
-    validate: Validate
-};
 
 
