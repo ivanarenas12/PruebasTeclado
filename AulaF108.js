@@ -81,19 +81,21 @@ export function Render(colors, endpoint) {
     }
 
     let buffer = new Array(520).fill(0);
-    buffer[0] = 0x00;
-    buffer[1] = 0x00;
-    buffer[2] = 0x00;
-    buffer[3] = 0x00;
+    buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0x00;
 
     for (let i = 0; i < colors.length && i < LedNames().length; i++) {
         let cPrev = previousColors[i] || [0,0,0];
         let c = colors[i];
 
-        // Interpolación suave
-        let r = Math.floor(cPrev[0] + (c[0]-cPrev[0])*0.3);
-        let g = Math.floor(cPrev[1] + (c[1]-cPrev[1])*0.3);
-        let b = Math.floor(cPrev[2] + (c[2]-cPrev[2])*0.3);
+        // Interpolación suave más rápida
+        let r = Math.floor(cPrev[0] + (c[0]-cPrev[0])*0.6);
+        let g = Math.floor(cPrev[1] + (c[1]-cPrev[1])*0.6);
+        let b = Math.floor(cPrev[2] + (c[2]-cPrev[2])*0.6);
+
+        // Limitar valores 0-255
+        r = Math.max(0, Math.min(255, r));
+        g = Math.max(0, Math.min(255, g));
+        b = Math.max(0, Math.min(255, b));
 
         buffer[4 + i*4]     = r;
         buffer[4 + i*4 +1]  = g;
@@ -115,11 +117,12 @@ export function OnUpdate(device) {
     frameCount++;
     const leds = ControllableParameters();
     const colors = leds.map((led, index) => {
-        // Onda de color roja que recorre el teclado
-        const r = Math.floor(128 + 127 * Math.sin((index + frameCount * 0.2)));
-        const g = Math.floor(0);
-        const b = Math.floor(128 + 127 * Math.cos((index + frameCount * 0.2)));
-        return [r, g, b];
+        const speed = 0.3;
+        // Onda RGB con desfase para cada canal
+        const r = Math.floor(128 + 127 * Math.sin((index*0.5 + frameCount*speed)));
+        const g = Math.floor(128 + 127 * Math.sin((index*0.5 + frameCount*speed) + Math.PI/2));
+        const b = Math.floor(128 + 127 * Math.sin((index*0.5 + frameCount*speed) + Math.PI));
+        return [r,g,b];
     });
 
     Render(colors, device);
@@ -131,6 +134,7 @@ export function OnUpdate(device) {
 export function Shutdown() {
     console.log("🔴 Aula F108 plugin shutdown");
 }
+
 
 
 
