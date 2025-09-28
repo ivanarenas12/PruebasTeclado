@@ -6,13 +6,10 @@ export function VendorId() { return 0x258A; }
 export function ProductId() { return 0x010C; }
 export function Publisher() { return "Iván"; }
 export function Documentation() { return "devices/aula/f108"; }
-export function DeviceType() { return "Keyboard"; } // evita warning
+export function DeviceType() { return "Keyboard"; }
 
 export function Size() { return [23, 6]; }
-
-export function ControllableParameters() {
-    return [];
-}
+export function ControllableParameters() { return []; }
 
 // Validar endpoint
 export function Validate(endpoint) {
@@ -61,12 +58,16 @@ export function LedPositions() {
 }
 
 // ========================
-// Render final con color inicial suave
+// Estado global para suavizado
+// ========================
+let previousColors = new Array(LedNames().length).fill([0,0,0]);
+
+// ========================
+// Render con efecto y transición suave
 // ========================
 export function Render(colors, endpoint) {
-    // Inicializar con color suave si no hay colores
     if (!Array.isArray(colors) || colors.length === 0) {
-        colors = new Array(LedNames().length).fill([10, 10, 10]); // gris tenue
+        colors = new Array(LedNames().length).fill([10,10,10]); // color inicial suave
     }
 
     let buffer = new Array(520).fill(0);
@@ -76,11 +77,20 @@ export function Render(colors, endpoint) {
     buffer[3] = 0x00;
 
     for (let i = 0; i < colors.length && i < LedNames().length; i++) {
+        let cPrev = previousColors[i] || [0,0,0];
         let c = colors[i];
-        buffer[4 + i*4]     = c[0] || 0;
-        buffer[4 + i*4 +1]  = c[1] || 0;
-        buffer[4 + i*4 +2]  = c[2] || 0;
+
+        // Interpolación simple para transición suave
+        let r = Math.floor(cPrev[0] + (c[0]-cPrev[0])*0.3);
+        let g = Math.floor(cPrev[1] + (c[1]-cPrev[1])*0.3);
+        let b = Math.floor(cPrev[2] + (c[2]-cPrev[2])*0.3);
+
+        buffer[4 + i*4]     = r;
+        buffer[4 + i*4 +1]  = g;
+        buffer[4 + i*4 +2]  = b;
         buffer[4 + i*4 +3]  = 0x00;
+
+        previousColors[i] = [r,g,b];
     }
 
     if (endpoint && typeof endpoint.SendReport === "function") {
@@ -94,7 +104,6 @@ export function Render(colors, endpoint) {
 export function Shutdown() {
     console.log("🔴 Aula F108 plugin shutdown");
 }
-
 
 
 
