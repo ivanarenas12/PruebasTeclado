@@ -8,7 +8,7 @@ export function ProductId() { return 0x010C; }
 export function Publisher() { return "Iván"; }
 export function Documentation() { return "devices/aula/f108"; }
 export function DeviceType() { return "Keyboard"; }
-export function Size() { return [23,6]; }
+export function Size() { return [24,6]; }
 export function DefaultPosition() { return [10, 100]; }
 export function DefaultScale() { return 12.0; }
 
@@ -126,6 +126,7 @@ export function Shutdown() {
 // ========================
 export function LedNames() { return vKeyNames; }
 export function LedPositions() { return vKeyPositions; }
+
 
 
 
