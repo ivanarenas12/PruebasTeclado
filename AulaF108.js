@@ -96,10 +96,16 @@ export function Initialize() {
     return true;
 }
 
+// Variable para controlar warning de Render
+let warnedNoColors = false;
+
 export function Render(colors) {
-    // Inicializar con negro si colors no está definido
     if (!Array.isArray(colors)) {
-        colors = new Array(LedNames().length).fill([0, 0, 0]);
+        if (!warnedNoColors) {
+            console.warn("⚠ Render llamado sin colores válidos");
+            warnedNoColors = true;
+        }
+        colors = new Array(LedNames().length).fill([0,0,0]);
     }
 
     let buffer = new Array(520).fill(0);
@@ -124,10 +130,12 @@ export function Shutdown() {
     console.log("🔴 Aula F108 cerrado");
 }
 
-// Exponer funciones a SignalRGB
+// Exponer funciones a SignalRGB explícitamente
 export const hid = {
     initialize: Initialize,
     render: Render,
     shutdown: Shutdown,
     validate: Validate
 };
+
+
