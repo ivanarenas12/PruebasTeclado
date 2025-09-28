@@ -97,9 +97,9 @@ export function Initialize() {
 }
 
 export function Render(colors) {
-    if (!colors || !Array.isArray(colors)) {
-        console.warn("⚠ Render llamado sin colores válidos");
-        return;
+    // Inicializar con negro si colors no está definido
+    if (!Array.isArray(colors)) {
+        colors = new Array(LedNames().length).fill([0, 0, 0]);
     }
 
     let buffer = new Array(520).fill(0);
@@ -124,12 +124,10 @@ export function Shutdown() {
     console.log("🔴 Aula F108 cerrado");
 }
 
-// Exponer funciones a SignalRGB de forma explícita
+// Exponer funciones a SignalRGB
 export const hid = {
     initialize: Initialize,
     render: Render,
     shutdown: Shutdown,
     validate: Validate
 };
-
-
