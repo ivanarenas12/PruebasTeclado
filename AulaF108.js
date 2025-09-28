@@ -14,6 +14,7 @@ export function ControllableParameters() {
 }
 
 export function Validate(endpoint) {
+    // Ajusta según tu dispositivo, ejemplo:
     return endpoint.interface === 0 && endpoint.usage === 0x0002 && endpoint.usage_page === 0xffc1;
 }
 
@@ -87,8 +88,14 @@ export function LedPositions() {
     ];
 }
 
+// ========================
+// Inicialización del dispositivo
+// ========================
+let rgbEndpoint = null;
+
 export function Initialize() {
-    if (!device.OpenRGBDevice()) {
+    rgbEndpoint = device.OpenRGBDevice();
+    if (!rgbEndpoint) {
         console.error("❌ No se pudo abrir Aula F108");
         return false;
     }
@@ -96,6 +103,9 @@ export function Initialize() {
     return true;
 }
 
+// ========================
+// Render con control de warning solo la primera vez
+// ========================
 let warnedNoColors = false;
 
 export function Render(colors) {
@@ -121,13 +131,22 @@ export function Render(colors) {
         buffer[4 + i * 4 + 3] = 0x00;
     }
 
-    device.SendRGBReport(buffer);
+    if (rgbEndpoint) {
+        rgbEndpoint.SendReport(buffer);
+    }
 }
 
+// ========================
+// Cierre del dispositivo
+// ========================
 export function Shutdown() {
-    device.Close();
-    console.log("🔴 Aula F108 cerrado");
+    if (rgbEndpoint) {
+        rgbEndpoint.Close();
+        rgbEndpoint = null;
+        console.log("🔴 Aula F108 cerrado");
+    }
 }
+
 
 
 
