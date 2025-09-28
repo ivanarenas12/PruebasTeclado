@@ -1,6 +1,3 @@
-// Aula F108 Plugin para SignalRGB
-// Autor: Iván + Sr Dev Support
-
 export function Name() { return "Aula F108"; }
 export function VendorId() { return 0x258A; }
 export function ProductId() { return 0x010C; }
@@ -12,18 +9,16 @@ export function Size() { return [23, 6]; }
 
 // ========================
 // Controllable Parameters
-// Permite que SignalRGB envíe efectos a cada LED
 // ========================
 export function ControllableParameters() {
     return LedNames().map((ledName, index) => ({
-        name: ledName,             // Identificador interno
-        label: ledName,            // Texto visible en la interfaz
-        type: "color",             // Tipo correcto para LEDs
-        property: `led_${index}`,  // Propiedad única
-        default: [0, 0, 0]         // Valor inicial RGB (apagado)
+        name: ledName,
+        label: ledName,
+        type: "color",
+        property: `led_${index}`,
+        default: [0, 0, 0]
     }));
 }
-
 
 // Validar endpoint
 export function Validate(endpoint) {
@@ -75,9 +70,10 @@ export function LedPositions() {
 // Estado global para suavizado
 // ========================
 let previousColors = new Array(LedNames().length).fill([0,0,0]);
+let frameCount = 0;
 
 // ========================
-// Render con transición suave y soporte total de efectos SignalRGB
+// Render
 // ========================
 export function Render(colors, endpoint) {
     if (!Array.isArray(colors) || colors.length === 0) {
@@ -113,11 +109,30 @@ export function Render(colors, endpoint) {
 }
 
 // ========================
+// Actualización continua de LEDs
+// ========================
+export function OnUpdate(device) {
+    frameCount++;
+    const leds = ControllableParameters();
+    const colors = leds.map((led, index) => {
+        // Onda de color roja que recorre el teclado
+        const r = Math.floor(128 + 127 * Math.sin((index + frameCount * 0.2)));
+        const g = Math.floor(0);
+        const b = Math.floor(128 + 127 * Math.cos((index + frameCount * 0.2)));
+        return [r, g, b];
+    });
+
+    Render(colors, device);
+}
+
+// ========================
 // Shutdown
 // ========================
 export function Shutdown() {
     console.log("🔴 Aula F108 plugin shutdown");
 }
+
+
 
 
 
