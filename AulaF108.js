@@ -9,7 +9,21 @@ export function Documentation() { return "devices/aula/f108"; }
 export function DeviceType() { return "Keyboard"; }
 
 export function Size() { return [23, 6]; }
-export function ControllableParameters() { return []; }
+
+// ========================
+// Controllable Parameters
+// Permite que SignalRGB envíe efectos a cada LED
+// ========================
+export function ControllableParameters() {
+    return LedNames().map((ledName, index) => ({
+        name: ledName,             // Identificador interno
+        label: ledName,            // Texto visible en la interfaz
+        type: "color",             // Tipo correcto para LEDs
+        property: `led_${index}`,  // Propiedad única
+        default: [0, 0, 0]         // Valor inicial RGB (apagado)
+    }));
+}
+
 
 // Validar endpoint
 export function Validate(endpoint) {
@@ -63,11 +77,11 @@ export function LedPositions() {
 let previousColors = new Array(LedNames().length).fill([0,0,0]);
 
 // ========================
-// Render con efecto y transición suave
+// Render con transición suave y soporte total de efectos SignalRGB
 // ========================
 export function Render(colors, endpoint) {
     if (!Array.isArray(colors) || colors.length === 0) {
-        colors = new Array(LedNames().length).fill([10,10,10]); // color inicial suave
+        colors = new Array(LedNames().length).fill([10,10,10]);
     }
 
     let buffer = new Array(520).fill(0);
@@ -80,7 +94,7 @@ export function Render(colors, endpoint) {
         let cPrev = previousColors[i] || [0,0,0];
         let c = colors[i];
 
-        // Interpolación simple para transición suave
+        // Interpolación suave
         let r = Math.floor(cPrev[0] + (c[0]-cPrev[0])*0.3);
         let g = Math.floor(cPrev[1] + (c[1]-cPrev[1])*0.3);
         let b = Math.floor(cPrev[2] + (c[2]-cPrev[2])*0.3);
@@ -99,7 +113,7 @@ export function Render(colors, endpoint) {
 }
 
 // ========================
-// Shutdown (solo logging)
+// Shutdown
 // ========================
 export function Shutdown() {
     console.log("🔴 Aula F108 plugin shutdown");
