@@ -7,19 +7,20 @@ export function ProductId() { return 0x010C; }
 export function Publisher() { return "Iván"; }
 export function Documentation() { return "devices/aula/f108"; }
 
-// Size de la grilla (ancho, alto) – basado en nuestras coordenadas máximas
-// Elegí un tamaño que cubre X máximo (~23) y Y máximo (~6)
 export function Size() { return [23, 6]; }
 
-// Lista de parámetros que el usuario podría controlar (opcional)
 export function ControllableParameters() {
-    return [
-        // Por ejemplo, color en apagado, modo forzado, etc.
-        // Lo dejamos vacío si no hay extras por ahora
-    ];
+    return [];
 }
 
-// Nombres de los LEDs (array de strings) – número: 108
+// Validar si el dispositivo conectado corresponde a este plugin
+export function Validate(device) {
+    if (device.vendorId === VendorId() && device.productId === ProductId()) {
+        return true;
+    }
+    return false;
+}
+
 export function LedNames() {
     return [
         "Key_Escape",
@@ -55,7 +56,6 @@ export function LedNames() {
     ];
 }
 
-// Posiciones de cada LED como pares [X, Y], en el mismo orden que LedNames
 export function LedPositions() {
     return [
         [0, 0],
@@ -87,13 +87,11 @@ export function LedPositions() {
         [10.75, 5],[11.75, 5],[12.75, 5],[13.75, 5],
         [15.5, 5],[16.5, 5],[17.5, 5],
         [19, 5],[21, 5],
-        [19, -1],[20, -1],[21, -1],[22, -1]  // multimedia
+        [19, -1],[20, -1],[21, -1],[22, -1]
     ];
 }
 
-// Inicializar dispositivo
 export function Initialize() {
-    // Aqui usar el método correcto según el dispositivo
     if (!Device.OpenRGBDevice()) {
         console.log("❌ No se pudo abrir Aula F108");
         return false;
@@ -102,32 +100,26 @@ export function Initialize() {
     return true;
 }
 
-// Renderizado (enviar colores)
 export function Render(colors) {
-    // colors viene como array de [r,g,b] por índice del LED según LedNames/LedPositions
-
-    // Construcción de buffer al estilo X75 (520 bytes)
     let buffer = new Array(520).fill(0);
 
-    // Encabezado
     buffer[0] = 0x00;
     buffer[1] = 0x00;
     buffer[2] = 0x00;
     buffer[3] = 0x00;
 
     for (let i = 0; i < colors.length && i < LedNames().length; i++) {
-        let c = colors[i];  // c = [r,g,b]
+        let c = colors[i];
         let offset = 4 + (i * 4);
         buffer[offset]     = c[0];
         buffer[offset + 1] = c[1];
         buffer[offset + 2] = c[2];
-        buffer[offset + 3] = 0x00;  // padding
+        buffer[offset + 3] = 0x00;
     }
 
     Device.SendRGBReport(buffer);
 }
 
-// Shutdown del plugin (liberar conexión)
 export function Shutdown() {
     Device.Close();
 }
